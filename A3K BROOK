@@ -1,0 +1,506 @@
+-- ============================================
+-- A3K + Système de clé (version correcte)
+-- ============================================
+
+local KEY = "TA_CLE_ICI"                    -- ← Mets ta vraie clé ici
+local DISCORD_LINK = "https://discord.gg/TON_INVITE"  -- ← Mets ton lien Discord ici
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Empêche de relancer plusieurs fois
+if PlayerGui:FindFirstChild("A3K_KeySystem") or PlayerGui:FindFirstChild("A3K") then
+    return
+end
+
+-- ============================================
+-- SYSTÈME DE CLÉ
+-- ============================================
+local KeyGui = Instance.new("ScreenGui")
+KeyGui.Name = "A3K_KeySystem"
+KeyGui.ResetOnSpawn = false
+KeyGui.Parent = PlayerGui
+
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Parent = KeyGui
+KeyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KeyFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+KeyFrame.Size = UDim2.new(0, 340, 0, 210)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+KeyFrame.BorderSizePixel = 0
+
+local KeyCorner = Instance.new("UICorner")
+KeyCorner.CornerRadius = UDim.new(0, 10)
+KeyCorner.Parent = KeyFrame
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Parent = KeyFrame
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Position = UDim2.new(0, 0, 0, 12)
+KeyTitle.Size = UDim2.new(1, 0, 0, 28)
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.Text = "A3K - Key System"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyTitle.TextSize = 18
+
+-- Barre (TextBox)
+local KeyBox = Instance.new("TextBox")
+KeyBox.Parent = KeyFrame
+KeyBox.Position = UDim2.new(0.5, -145, 0, 50)
+KeyBox.Size = UDim2.new(0, 290, 0, 36)
+KeyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+KeyBox.BorderSizePixel = 0
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.PlaceholderText = "Entre ta clé ici..."
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.TextSize = 14
+KeyBox.ClearTextOnFocus = false
+KeyBox.TextEditable = true
+
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 6)
+BoxCorner.Parent = KeyBox
+
+-- Status
+local Status = Instance.new("TextLabel")
+Status.Parent = KeyFrame
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.new(0, 0, 0, 95)
+Status.Size = UDim2.new(1, 0, 0, 20)
+Status.Font = Enum.Font.Gotham
+Status.Text = ""
+Status.TextColor3 = Color3.fromRGB(255, 80, 80)
+Status.TextSize = 13
+
+-- Bouton 1 : Discord (met le lien dans la barre)
+local DiscordBtn = Instance.new("TextButton")
+DiscordBtn.Parent = KeyFrame
+DiscordBtn.Position = UDim2.new(0.5, -145, 0, 130)
+DiscordBtn.Size = UDim2.new(0, 140, 0, 34)
+DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- couleur Discord
+DiscordBtn.BorderSizePixel = 0
+DiscordBtn.Font = Enum.Font.GothamBold
+DiscordBtn.Text = "Discord"
+DiscordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+DiscordBtn.TextSize = 14
+
+local DiscordCorner = Instance.new("UICorner")
+DiscordCorner.CornerRadius = UDim.new(0, 6)
+DiscordCorner.Parent = DiscordBtn
+
+-- Bouton 2 : Activer la clé
+local ActivateBtn = Instance.new("TextButton")
+ActivateBtn.Parent = KeyFrame
+ActivateBtn.Position = UDim2.new(0.5, 5, 0, 130)
+ActivateBtn.Size = UDim2.new(0, 140, 0, 34)
+ActivateBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 80)
+ActivateBtn.BorderSizePixel = 0
+ActivateBtn.Font = Enum.Font.GothamBold
+ActivateBtn.Text = "Activer"
+ActivateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ActivateBtn.TextSize = 14
+
+local ActivateCorner = Instance.new("UICorner")
+ActivateCorner.CornerRadius = UDim.new(0, 6)
+ActivateCorner.Parent = ActivateBtn
+
+-- ============================================
+-- FONCTION QUI LANCE LE VRAI SCRIPT A3K
+-- ============================================
+local function LoadA3K()
+    KeyGui:Destroy() -- Détruit le système de clé
+
+    -- ========== PANEL A3K ==========
+    local ORIGINAL_SIZE = UDim2.new(0, 380, 0, 420)
+    local MINIMIZED_SIZE = UDim2.new(0, 380, 0, 42)
+    local TWEEN_INFO = TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+
+    local BG = Color3.fromRGB(8, 12, 10)
+    local TITLE_BG = Color3.fromRGB(12, 20, 16)
+    local ACCENT = Color3.fromRGB(0, 255, 70)
+    local BUTTON = Color3.fromRGB(20, 35, 25)
+    local TEXT = Color3.fromRGB(180, 255, 180)
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "A3K"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = PlayerGui
+
+    local Main = Instance.new("Frame")
+    Main.Name = "Main"
+    Main.Parent = ScreenGui
+    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+    Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Main.Size = ORIGINAL_SIZE
+    Main.BackgroundColor3 = BG
+    Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
+    Main.Active = true
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Main
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Parent = Main
+    Stroke.Color = ACCENT
+    Stroke.Thickness = 1.5
+    Stroke.Transparency = 0.6
+
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Parent = Main
+    TitleBar.Size = UDim2.new(1, 0, 0, 42)
+    TitleBar.BackgroundColor3 = TITLE_BG
+    TitleBar.BorderSizePixel = 0
+
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 8)
+    TitleCorner.Parent = TitleBar
+
+    local TitleFix = Instance.new("Frame")
+    TitleFix.Parent = TitleBar
+    TitleFix.BackgroundColor3 = TITLE_BG
+    TitleFix.BorderSizePixel = 0
+    TitleFix.Position = UDim2.new(0, 0, 1, -10)
+    TitleFix.Size = UDim2.new(1, 0, 0, 10)
+
+    local Title = Instance.new("TextLabel")
+    Title.Parent = TitleBar
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.Size = UDim2.new(1, -120, 1, 0)
+    Title.Font = Enum.Font.Code
+    Title.Text = "> A3K"
+    Title.TextColor3 = ACCENT
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local function CreateTitleButton(name, text, position)
+        local btn = Instance.new("TextButton")
+        btn.Name = name
+        btn.Parent = TitleBar
+        btn.AnchorPoint = Vector2.new(1, 0.5)
+        btn.Position = position
+        btn.Size = UDim2.new(0, 28, 0, 28)
+        btn.BackgroundColor3 = BUTTON
+        btn.BorderSizePixel = 0
+        btn.Font = Enum.Font.Code
+        btn.Text = text
+        btn.TextColor3 = ACCENT
+        btn.TextSize = 16
+        btn.AutoButtonColor = true
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 4)
+        corner.Parent = btn
+        return btn
+    end
+
+    local CloseBtn = CreateTitleButton("Close", "X", UDim2.new(1, -10, 0.5, 0))
+    local MinBtn   = CreateTitleButton("Minimize", "-", UDim2.new(1, -44, 0.5, 0))
+    local MaxBtn   = CreateTitleButton("Maximize", "+", UDim2.new(1, -78, 0.5, 0))
+    CloseBtn.TextSize = 14
+    MinBtn.TextSize = 18
+
+    local Content = Instance.new("Frame")
+    Content.Name = "Content"
+    Content.Parent = Main
+    Content.BackgroundTransparency = 1
+    Content.Position = UDim2.new(0, 0, 0, 42)
+    Content.Size = UDim2.new(1, 0, 1, -42)
+
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Parent = Content
+    Sidebar.Size = UDim2.new(0, 100, 1, 0)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(10, 18, 14)
+    Sidebar.BorderSizePixel = 0
+
+    local SideCorner = Instance.new("UICorner")
+    SideCorner.CornerRadius = UDim.new(0, 6)
+    SideCorner.Parent = Sidebar
+
+    local function CreateTabButton(name, text, yPos)
+        local btn = Instance.new("TextButton")
+        btn.Name = name
+        btn.Parent = Sidebar
+        btn.Size = UDim2.new(1, -12, 0, 36)
+        btn.Position = UDim2.new(0, 6, 0, yPos)
+        btn.BackgroundColor3 = BUTTON
+        btn.BorderSizePixel = 0
+        btn.Font = Enum.Font.Code
+        btn.Text = text
+        btn.TextColor3 = TEXT
+        btn.TextSize = 13
+        btn.AutoButtonColor = true
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 4)
+        corner.Parent = btn
+        return btn
+    end
+
+    local PlayerTab = CreateTabButton("PlayerTab", "Player", 12)
+    local ScriptTab = CreateTabButton("ScriptTab", "Script", 56)
+
+    local RightPanel = Instance.new("Frame")
+    RightPanel.Parent = Content
+    RightPanel.Position = UDim2.new(0, 108, 0, 8)
+    RightPanel.Size = UDim2.new(1, -116, 1, -16)
+    RightPanel.BackgroundTransparency = 1
+
+    local PlayerPage = Instance.new("Frame")
+    PlayerPage.Parent = RightPanel
+    PlayerPage.Size = UDim2.new(1, 0, 1, 0)
+    PlayerPage.BackgroundTransparency = 1
+    PlayerPage.Visible = true
+
+    local function CreateLabel(parent, text, y)
+        local lbl = Instance.new("TextLabel")
+        lbl.Parent = parent
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.new(0, 0, 0, y)
+        lbl.Size = UDim2.new(1, 0, 0, 20)
+        lbl.Font = Enum.Font.Code
+        lbl.Text = text
+        lbl.TextColor3 = Color3.fromRGB(0, 200, 80)
+        lbl.TextSize = 12
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        return lbl
+    end
+
+    local function CreateTextBox(parent, placeholder, y)
+        local box = Instance.new("TextBox")
+        box.Parent = parent
+        box.Position = UDim2.new(0, 0, 0, y)
+        box.Size = UDim2.new(1, 0, 0, 32)
+        box.BackgroundColor3 = Color3.fromRGB(15, 25, 18)
+        box.BorderSizePixel = 0
+        box.Font = Enum.Font.Code
+        box.PlaceholderText = placeholder
+        box.Text = ""
+        box.TextColor3 = ACCENT
+        box.TextSize = 14
+        box.ClearTextOnFocus = false
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 4)
+        corner.Parent = box
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Parent = box
+        stroke.Color = ACCENT
+        stroke.Thickness = 1
+        stroke.Transparency = 0.7
+        return box
+    end
+
+    CreateLabel(PlayerPage, "WalkSpeed (max 200)", 0)
+    local WalkBox = CreateTextBox(PlayerPage, "16", 22)
+
+    CreateLabel(PlayerPage, "JumpPower (max 150)", 64)
+    local JumpBox = CreateTextBox(PlayerPage, "50", 86)
+
+    CreateLabel(PlayerPage, "Gravity (0 - 150)", 128)
+    local GravBox = CreateTextBox(PlayerPage, "196.2", 150)
+
+    local function CreateActionButton(parent, text, y, color)
+        local btn = Instance.new("TextButton")
+        btn.Parent = parent
+        btn.Position = UDim2.new(0, 0, 0, y)
+        btn.Size = UDim2.new(1, 0, 0, 34)
+        btn.BackgroundColor3 = color
+        btn.BorderSizePixel = 0
+        btn.Font = Enum.Font.Code
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        btn.TextSize = 14
+        btn.AutoButtonColor = true
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 4)
+        corner.Parent = btn
+        return btn
+    end
+
+    local ApplyBtn = CreateActionButton(PlayerPage, "APPLY", 200, ACCENT)
+    local ResetBtn = CreateActionButton(PlayerPage, "RESET", 244, Color3.fromRGB(180, 40, 40))
+
+    local ScriptPage = Instance.new("Frame")
+    ScriptPage.Parent = RightPanel
+    ScriptPage.Size = UDim2.new(1, 0, 1, 0)
+    ScriptPage.BackgroundTransparency = 1
+    ScriptPage.Visible = false
+
+    local FlyBtn = CreateActionButton(ScriptPage, "FLY", 10, Color3.fromRGB(0, 180, 100))
+    local NoclipBtn = CreateActionButton(ScriptPage, "NOCLIP", 54, Color3.fromRGB(180, 120, 0))
+
+    -- Drag
+    local dragging, dragStart, startPos = false, nil, nil
+
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+        end
+    end)
+
+    TitleBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Min / Max
+    local isMinimized = false
+    local currentTween = nil
+
+    local function AnimateSize(targetSize, onComplete)
+        if currentTween then currentTween:Cancel() end
+        currentTween = TweenService:Create(Main, TWEEN_INFO, {Size = targetSize})
+        currentTween.Completed:Connect(function()
+            currentTween = nil
+            if onComplete then onComplete() end
+        end)
+        currentTween:Play()
+    end
+
+    MinBtn.MouseButton1Click:Connect(function()
+        if isMinimized then return end
+        isMinimized = true
+        Content.Visible = false
+        AnimateSize(MINIMIZED_SIZE)
+    end)
+
+    MaxBtn.MouseButton1Click:Connect(function()
+        if not isMinimized then return end
+        isMinimized = false
+        AnimateSize(ORIGINAL_SIZE, function()
+            Content.Visible = true
+        end)
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        if currentTween then currentTween:Cancel() end
+        ScreenGui:Destroy()
+    end)
+
+    -- Tabs
+    local function SetTab(tab)
+        if tab == "Player" then
+            PlayerPage.Visible = true
+            ScriptPage.Visible = false
+            PlayerTab.BackgroundColor3 = ACCENT
+            PlayerTab.TextColor3 = Color3.fromRGB(0, 0, 0)
+            ScriptTab.BackgroundColor3 = BUTTON
+            ScriptTab.TextColor3 = TEXT
+        else
+            PlayerPage.Visible = false
+            ScriptPage.Visible = true
+            PlayerTab.BackgroundColor3 = BUTTON
+            PlayerTab.TextColor3 = TEXT
+            ScriptTab.BackgroundColor3 = ACCENT
+            ScriptTab.TextColor3 = Color3.fromRGB(0, 0, 0)
+        end
+    end
+
+    PlayerTab.MouseButton1Click:Connect(function() SetTab("Player") end)
+    ScriptTab.MouseButton1Click:Connect(function() SetTab("Script") end)
+    SetTab("Player")
+
+    local function GetHumanoid()
+        local char = LocalPlayer.Character
+        return char and char:FindFirstChildOfClass("Humanoid")
+    end
+
+    ApplyBtn.MouseButton1Click:Connect(function()
+        local hum = GetHumanoid()
+        if not hum then return end
+
+        local ws = tonumber(WalkBox.Text)
+        if ws then
+            ws = math.clamp(ws, 0, 200)
+            hum.WalkSpeed = ws
+            WalkBox.Text = tostring(ws)
+        end
+
+        local jp = tonumber(JumpBox.Text)
+        if jp then
+            jp = math.clamp(jp, 0, 150)
+            hum.JumpPower = jp
+            hum.UseJumpPower = true
+            JumpBox.Text = tostring(jp)
+        end
+
+        local grav = tonumber(GravBox.Text)
+        if grav then
+            grav = math.clamp(grav, 0, 150)
+            workspace.Gravity = grav
+            GravBox.Text = tostring(grav)
+        end
+    end)
+
+    ResetBtn.MouseButton1Click:Connect(function()
+        local hum = GetHumanoid()
+        if hum then
+            hum.WalkSpeed = 16
+            hum.JumpPower = 50
+            hum.UseJumpPower = true
+        end
+        workspace.Gravity = 196.2
+        WalkBox.Text = "16"
+        JumpBox.Text = "50"
+        GravBox.Text = "196.2"
+    end)
+
+    FlyBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+        end)
+    end)
+
+    NoclipBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fe-Noclip-Walls-33595"))()
+        end)
+    end)
+
+    print("A3K chargé avec succès")
+end
+
+-- ============================================
+-- BOUTONS DU SYSTÈME DE CLÉ
+-- ============================================
+
+-- Bouton Discord → met le lien dans la barre
+DiscordBtn.MouseButton1Click:Connect(function()
+    KeyBox.Text = DISCORD_LINK
+    Status.Text = "Lien Discord copié dans la barre !"
+    Status.TextColor3 = Color3.fromRGB(88, 101, 242)
+end)
+
+-- Bouton Activer → vérifie la clé
+ActivateBtn.MouseButton1Click:Connect(function()
+    if KeyBox.Text == KEY then
+        Status.Text = "Clé correcte !"
+        Status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        task.wait(0.35)
+        LoadA3K() -- Détruit le key system et lance A3K
+    else
+        Status.Text = "Clé incorrecte"
+        Status.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
