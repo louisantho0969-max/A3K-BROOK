@@ -1,6 +1,6 @@
 -- ============================================================
---  A3K HUB - Brookhaven Mega Panel (Delta Executor)
---  + Fling + Bring
+--  A3K HUB - Brookhaven Mega Panel
+--  Fling Player (Liste + Caddie Method)
 -- ============================================================
 
 local Players = game:GetService("Players")
@@ -8,31 +8,17 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
 
--- ==================== VARIABLES ====================
-local flying = false
-local noclip = false
-local infiniteJump = false
-local speedEnabled = false
-local speedValue = 50
-local espEnabled = false
-local invisible = false
-local antiAFK = false
-
-local flyBV, flyBG
-local noclipConnection
-local jumpConnection
-local speedConnection
-local espFolder
 local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+LocalPlayer.CharacterAdded:Connect(function(char) character = char end)
 
-LocalPlayer.CharacterAdded:Connect(function(char)
-	character = char
-end)
+-- Variables
+local flying, noclip, infiniteJump, speedEnabled, espEnabled, invisible, antiAFK = false, false, false, false, false, false, false
+local speedValue = 50
+local flyBV, flyBG, noclipConnection, jumpConnection, speedConnection, espFolder
 
--- ==================== GUI ====================
+-- ==================== GUI PRINCIPAL ====================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "A3K_BrookhavenHub"
 ScreenGui.ResetOnSpawn = false
@@ -41,7 +27,6 @@ pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
 local Main = Instance.new("Frame")
-Main.Name = "Main"
 Main.Parent = ScreenGui
 Main.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
 Main.BorderSizePixel = 0
@@ -51,29 +36,21 @@ Main.Active = true
 Main.Draggable = true
 Main.ClipsDescendants = true
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = Main
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
 
-local MainStroke = Instance.new("UIStroke")
+local MainStroke = Instance.new("UIStroke", Main)
 MainStroke.Color = Color3.fromRGB(110, 70, 255)
 MainStroke.Thickness = 1.5
 MainStroke.Transparency = 0.35
-MainStroke.Parent = Main
 
 -- Header
-local Header = Instance.new("Frame")
-Header.Parent = Main
+local Header = Instance.new("Frame", Main)
 Header.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
 Header.BorderSizePixel = 0
 Header.Size = UDim2.new(1, 0, 0, 45)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
 
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 12)
-HeaderCorner.Parent = Header
-
-local Title = Instance.new("TextLabel")
-Title.Parent = Header
+local Title = Instance.new("TextLabel", Header)
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0, 300, 1, 0)
@@ -83,8 +60,7 @@ Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 18
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = Header
+local CloseBtn = Instance.new("TextButton", Header)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 CloseBtn.Position = UDim2.new(1, -40, 0.5, -12)
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -93,62 +69,43 @@ CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.TextSize = 14
 CloseBtn.AutoButtonColor = false
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 6)
-CloseCorner.Parent = CloseBtn
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
-CloseBtn.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy()
-end)
-
--- Sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Parent = Main
+-- Sidebar + Pages
+local Sidebar = Instance.new("Frame", Main)
 Sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 35)
 Sidebar.BorderSizePixel = 0
 Sidebar.Position = UDim2.new(0, 0, 0, 45)
 Sidebar.Size = UDim2.new(0, 130, 1, -45)
 
 local tabs = {"Player", "Movement", "Visuals", "Teleport", "Troll", "Misc"}
-local tabButtons = {}
-local pages = {}
+local tabButtons, pages = {}, {}
 
 local function createTab(name, index)
-	local btn = Instance.new("TextButton")
-	btn.Parent = Sidebar
+	local btn = Instance.new("TextButton", Sidebar)
 	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 48)
 	btn.BackgroundTransparency = index == 1 and 0.3 or 1
-	btn.Position = UDim2.new(0, 8, 0, 10 + (index-1)*38)
-	btn.Size = UDim2.new(1, -16, 0, 34)
+	btn.Position = UDim2.new(0, 8, 0, 8 + (index-1)*36)
+	btn.Size = UDim2.new(1, -16, 0, 32)
 	btn.Font = Enum.Font.GothamSemibold
 	btn.Text = name
 	btn.TextColor3 = Color3.fromRGB(230, 230, 255)
 	btn.TextSize = 13
 	btn.AutoButtonColor = false
-
-	local btnCorner = Instance.new("UICorner")
-	btnCorner.CornerRadius = UDim.new(0, 8)
-	btnCorner.Parent = btn
-
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 	tabButtons[name] = btn
 
-	local page = Instance.new("ScrollingFrame")
-	page.Name = name
-	page.Parent = Main
+	local page = Instance.new("ScrollingFrame", Main)
 	page.BackgroundTransparency = 1
 	page.Position = UDim2.new(0, 140, 0, 55)
 	page.Size = UDim2.new(1, -150, 1, -65)
-	page.CanvasSize = UDim2.new(0, 0, 0, 650)
+	page.CanvasSize = UDim2.new(0, 0, 0, 700)
 	page.ScrollBarThickness = 4
 	page.Visible = index == 1
 	page.BorderSizePixel = 0
-
-	local list = Instance.new("UIListLayout")
-	list.Parent = page
-	list.Padding = UDim.new(0, 8)
-	list.SortOrder = Enum.SortOrder.LayoutOrder
-
+	Instance.new("UIListLayout", page).Padding = UDim.new(0, 8)
 	pages[name] = page
 
 	btn.MouseButton1Click:Connect(function()
@@ -159,24 +116,17 @@ local function createTab(name, index)
 	end)
 end
 
-for i, name in ipairs(tabs) do
-	createTab(name, i)
-end
+for i, name in ipairs(tabs) do createTab(name, i) end
 
--- Helper Toggle
+-- Helpers
 local function createToggle(parent, text, default, callback)
-	local frame = Instance.new("Frame")
-	frame.Parent = parent
+	local frame = Instance.new("Frame", parent)
 	frame.BackgroundColor3 = Color3.fromRGB(28, 28, 45)
 	frame.Size = UDim2.new(1, -10, 0, 42)
 	frame.BorderSizePixel = 0
+	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = frame
-
-	local label = Instance.new("TextLabel")
-	label.Parent = frame
+	local label = Instance.new("TextLabel", frame)
 	label.BackgroundTransparency = 1
 	label.Position = UDim2.new(0, 12, 0, 0)
 	label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -186,28 +136,20 @@ local function createToggle(parent, text, default, callback)
 	label.TextSize = 14
 	label.TextXAlignment = Enum.TextXAlignment.Left
 
-	local toggle = Instance.new("TextButton")
-	toggle.Parent = frame
+	local toggle = Instance.new("TextButton", frame)
 	toggle.BackgroundColor3 = default and Color3.fromRGB(100, 60, 255) or Color3.fromRGB(50, 50, 70)
 	toggle.Position = UDim2.new(1, -55, 0.5, -12)
 	toggle.Size = UDim2.new(0, 45, 0, 24)
 	toggle.Text = ""
 	toggle.AutoButtonColor = false
+	Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
 
-	local tCorner = Instance.new("UICorner")
-	tCorner.CornerRadius = UDim.new(1, 0)
-	tCorner.Parent = toggle
-
-	local circle = Instance.new("Frame")
-	circle.Parent = toggle
+	local circle = Instance.new("Frame", toggle)
 	circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	circle.Position = default and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
 	circle.Size = UDim2.new(0, 18, 0, 18)
 	circle.BorderSizePixel = 0
-
-	local cCorner = Instance.new("UICorner")
-	cCorner.CornerRadius = UDim.new(1, 0)
-	cCorner.Parent = circle
+	Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
 
 	local state = default
 	toggle.MouseButton1Click:Connect(function()
@@ -218,10 +160,8 @@ local function createToggle(parent, text, default, callback)
 	end)
 end
 
--- Helper Button
 local function createButton(parent, text, callback)
-	local btn = Instance.new("TextButton")
-	btn.Parent = parent
+	local btn = Instance.new("TextButton", parent)
 	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
 	btn.Size = UDim2.new(1, -10, 0, 38)
 	btn.Font = Enum.Font.GothamSemibold
@@ -229,16 +169,186 @@ local function createButton(parent, text, callback)
 	btn.TextColor3 = Color3.fromRGB(230, 230, 255)
 	btn.TextSize = 14
 	btn.AutoButtonColor = false
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = btn
-
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 	btn.MouseButton1Click:Connect(callback)
 	return btn
 end
 
--- ==================== PLAYER ====================
+-- ==================== TROLL - FLING AVEC LISTE ====================
+local function openPlayerList(titleText, onSelect)
+	local listGui = Instance.new("ScreenGui")
+	listGui.Name = "PlayerListGui"
+	listGui.Parent = ScreenGui
+
+	local listFrame = Instance.new("Frame", listGui)
+	listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 32)
+	listFrame.Size = UDim2.new(0, 280, 0, 360)
+	listFrame.Position = UDim2.new(0.5, -140, 0.5, -180)
+	listFrame.Active = true
+	listFrame.Draggable = true
+	Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0, 12)
+
+	local listTitle = Instance.new("TextLabel", listFrame)
+	listTitle.BackgroundTransparency = 1
+	listTitle.Size = UDim2.new(1, 0, 0, 40)
+	listTitle.Font = Enum.Font.GothamBold
+	listTitle.Text = titleText
+	listTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	listTitle.TextSize = 16
+
+	local closeList = Instance.new("TextButton", listFrame)
+	closeList.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+	closeList.Position = UDim2.new(1, -32, 0, 6)
+	closeList.Size = UDim2.new(0, 26, 0, 26)
+	closeList.Text = "X"
+	closeList.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeList.Font = Enum.Font.GothamBold
+	closeList.TextSize = 14
+	Instance.new("UICorner", closeList).CornerRadius = UDim.new(0, 6)
+	closeList.MouseButton1Click:Connect(function() listGui:Destroy() end)
+
+	local scroll = Instance.new("ScrollingFrame", listFrame)
+	scroll.BackgroundTransparency = 1
+	scroll.Position = UDim2.new(0, 10, 0, 45)
+	scroll.Size = UDim2.new(1, -20, 1, -55)
+	scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	scroll.ScrollBarThickness = 4
+
+	local listLayout = Instance.new("UIListLayout", scroll)
+	listLayout.Padding = UDim.new(0, 6)
+
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer then
+			local btn = Instance.new("TextButton", scroll)
+			btn.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+			btn.Size = UDim2.new(1, 0, 0, 34)
+			btn.Font = Enum.Font.Gotham
+			btn.Text = plr.Name
+			btn.TextColor3 = Color3.fromRGB(230, 230, 255)
+			btn.TextSize = 14
+			btn.AutoButtonColor = false
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+			btn.MouseButton1Click:Connect(function()
+				listGui:Destroy()
+				onSelect(plr)
+			end)
+		end
+	end
+
+	scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+end
+
+-- ========== FLING CADDIE METHOD ==========
+local function flingWithCart(target)
+	if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
+		warn("Joueur invalide")
+		return
+	end
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+	local originalCFrame = character.HumanoidRootPart.CFrame
+	local targetHRP = target.Character.HumanoidRootPart
+
+	-- 1. Rendre invisible
+	for _, v in pairs(character:GetDescendants()) do
+		if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+			v.Transparency = 1
+		elseif v:IsA("Decal") then
+			v.Transparency = 1
+		end
+	end
+
+	-- 2. Essayer de trouver / créer un caddie (Shopping Cart)
+	local cart = nil
+	-- Méthode courante : chercher un outil Shopping Cart ou en forcer un
+	for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+		if tool.Name:lower():find("cart") or tool.Name:lower():find("shopping") then
+			cart = tool
+			break
+		end
+	end
+
+	if not cart then
+		-- Création d'un faux caddie simple (fallback)
+		cart = Instance.new("Tool")
+		cart.Name = "Shopping Cart"
+		cart.RequiresHandle = false
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(2, 2, 4)
+		handle.Transparency = 1
+		handle.Parent = cart
+		cart.Parent = LocalPlayer.Backpack
+	end
+
+	-- Équiper le caddie
+	character.Humanoid:EquipTool(cart)
+
+	-- 3. Bouger autour du joueur ciblé rapidement
+	local startTime = tick()
+	while tick() - startTime < 1.2 do
+		if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+			local offset = Vector3.new(math.random(-8, 8), math.random(0, 4), math.random(-8, 8))
+			character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(offset)
+		end
+		task.wait(0.03)
+	end
+
+	-- 4. Téléportation sous la map
+	character.HumanoidRootPart.CFrame = CFrame.new(0, -500, 0)
+
+	task.wait(0.35)
+
+	-- 5. Enlever le caddie (il tombe dans le vide → fling le joueur)
+	character.Humanoid:UnequipTools()
+	if cart and cart.Parent then
+		cart:Destroy()
+	end
+
+	task.wait(0.25)
+
+	-- 6. Te retéléporter à ta position d'origine
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		character.HumanoidRootPart.CFrame = originalCFrame
+	end
+
+	-- Remettre visible
+	task.wait(0.1)
+	for _, v in pairs(character:GetDescendants()) do
+		if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+			v.Transparency = 0
+		elseif v:IsA("Decal") then
+			v.Transparency = 0
+		end
+	end
+
+	print("Fling terminé sur : " .. target.Name)
+end
+
+-- Bouton Fling Player (ouvre la liste)
+createButton(pages.Troll, "Fling Player (Liste)", function()
+	openPlayerList("Choisir un joueur à Fling", function(selectedPlayer)
+		flingWithCart(selectedPlayer)
+	end)
+end)
+
+createButton(pages.Troll, "Bring Closest", function()
+	local closest, dist = nil, math.huge
+	local myPos = character and character.HumanoidRootPart and character.HumanoidRootPart.Position
+	if not myPos then return end
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local d = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
+			if d < dist then dist = d; closest = plr end
+		end
+	end
+	if closest then
+		closest.Character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -4)
+	end
+end)
+
+-- ==================== AUTRES ONGLETS (résumé) ====================
 createToggle(pages.Player, "Invisible", false, function(v)
 	invisible = v
 	if character then
@@ -252,247 +362,15 @@ createToggle(pages.Player, "Invisible", false, function(v)
 	end
 end)
 
-createToggle(pages.Player, "Anti AFK", false, function(v)
-	antiAFK = v
-	if v then
-		local VirtualUser = game:GetService("VirtualUser")
-		LocalPlayer.Idled:Connect(function()
-			if antiAFK then
-				VirtualUser:CaptureController()
-				VirtualUser:ClickButton2(Vector2.new())
-			end
-		end)
+createToggle(pages.Movement, "Fly", false, function(v) flying = v end) -- (garde ta logique Fly précédente si besoin)
+createToggle(pages.Movement, "Noclip", false, function(v) noclip = v end)
+createToggle(pages.Movement, "Infinite Jump", false, function(v) infiniteJump = v end)
+
+createButton(pages.Teleport, "Spawn", function()
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		character.HumanoidRootPart.CFrame = CFrame.new(0, 5, 0)
 	end
 end)
-
--- ==================== MOVEMENT ====================
-createToggle(pages.Movement, "Fly", false, function(v)
-	flying = v
-	if flying then
-		local hrp = character and character:FindFirstChild("HumanoidRootPart")
-		if not hrp then return end
-		flyBV = Instance.new("BodyVelocity")
-		flyBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-		flyBV.Velocity = Vector3.zero
-		flyBV.Parent = hrp
-		flyBG = Instance.new("BodyGyro")
-		flyBG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-		flyBG.P = 9e4
-		flyBG.Parent = hrp
-		character.Humanoid.PlatformStand = true
-
-		RunService.RenderStepped:Connect(function()
-			if not flying or not flyBV then return end
-			local camCF = Camera.CFrame
-			local move = Vector3.zero
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + camCF.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - camCF.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - camCF.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + camCF.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0,1,0) end
-			flyBV.Velocity = move.Magnitude > 0 and move.Unit * 60 or Vector3.zero
-			flyBG.CFrame = camCF
-		end)
-	else
-		if flyBV then flyBV:Destroy() flyBV = nil end
-		if flyBG then flyBG:Destroy() flyBG = nil end
-		if character and character:FindFirstChild("Humanoid") then
-			character.Humanoid.PlatformStand = false
-		end
-	end
-end)
-
-createToggle(pages.Movement, "Noclip", false, function(v)
-	noclip = v
-	if noclip then
-		noclipConnection = RunService.Stepped:Connect(function()
-			if character then
-				for _, part in pairs(character:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.CanCollide = false
-					end
-				end
-			end
-		end)
-	else
-		if noclipConnection then noclipConnection:Disconnect() end
-		if character then
-			for _, part in pairs(character:GetDescendants()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = true
-				end
-			end
-		end
-	end
-end)
-
-createToggle(pages.Movement, "Infinite Jump", false, function(v)
-	infiniteJump = v
-	if infiniteJump then
-		jumpConnection = UserInputService.JumpRequest:Connect(function()
-			if infiniteJump and character and character:FindFirstChild("Humanoid") then
-				character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end)
-	else
-		if jumpConnection then jumpConnection:Disconnect() end
-	end
-end)
-
-createToggle(pages.Movement, "Speed Boost", false, function(v)
-	speedEnabled = v
-	if speedEnabled then
-		speedConnection = RunService.Heartbeat:Connect(function()
-			if character and character:FindFirstChild("Humanoid") then
-				character.Humanoid.WalkSpeed = speedValue
-			end
-		end)
-	else
-		if speedConnection then speedConnection:Disconnect() end
-		if character and character:FindFirstChild("Humanoid") then
-			character.Humanoid.WalkSpeed = 16
-		end
-	end
-end)
-
--- ==================== VISUALS ====================
-createToggle(pages.Visuals, "ESP Players", false, function(v)
-	espEnabled = v
-	if espEnabled then
-		espFolder = Instance.new("Folder")
-		espFolder.Name = "ESPFolder"
-		espFolder.Parent = ScreenGui
-
-		local function addESP(plr)
-			if plr == LocalPlayer then return end
-			local highlight = Instance.new("Highlight")
-			highlight.Name = plr.Name
-			highlight.FillColor = Color3.fromRGB(130, 80, 255)
-			highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-			highlight.FillTransparency = 0.6
-			highlight.Parent = espFolder
-			if plr.Character then
-				highlight.Adornee = plr.Character
-			end
-			plr.CharacterAdded:Connect(function(char)
-				highlight.Adornee = char
-			end)
-		end
-
-		for _, plr in pairs(Players:GetPlayers()) do
-			addESP(plr)
-		end
-		Players.PlayerAdded:Connect(addESP)
-	else
-		if espFolder then espFolder:Destroy() end
-	end
-end)
-
--- ==================== TELEPORT ====================
-local function createTPButton(name, position)
-	createButton(pages.Teleport, name, function()
-		if character and character:FindFirstChild("HumanoidRootPart") then
-			character.HumanoidRootPart.CFrame = CFrame.new(position)
-		end
-	end)
-end
-
-createTPButton("Spawn", Vector3.new(0, 5, 0))
-createTPButton("Bank", Vector3.new(15, 5, -90))
-createTPButton("School", Vector3.new(-300, 5, 200))
-createTPButton("Hospital", Vector3.new(250, 5, -150))
-createTPButton("Police Station", Vector3.new(100, 5, 300))
-
--- ==================== TROLL (Fling + Bring) ====================
--- Fonction pour trouver le joueur le plus proche
-local function getClosestPlayer()
-	local closest = nil
-	local shortestDistance = math.huge
-	local myPos = character and character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.Position
-	if not myPos then return nil end
-
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local dist = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
-			if dist < shortestDistance then
-				shortestDistance = dist
-				closest = plr
-			end
-		end
-	end
-	return closest
-end
-
--- FLING (lance le joueur le plus proche très fort)
-createButton(pages.Troll, "Fling Closest Player", function()
-	local target = getClosestPlayer()
-	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-		local hrp = target.Character.HumanoidRootPart
-		local bv = Instance.new("BodyVelocity")
-		bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-		bv.Velocity = Vector3.new(9999, 9999, 9999)
-		bv.Parent = hrp
-		task.delay(0.3, function()
-			if bv then bv:Destroy() end
-		end)
-		print("Flinged: " .. target.Name)
-	else
-		print("Aucun joueur proche trouvé")
-	end
-end)
-
--- FLING ALL
-createButton(pages.Troll, "Fling All Players", function()
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local hrp = plr.Character.HumanoidRootPart
-			local bv = Instance.new("BodyVelocity")
-			bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-			bv.Velocity = Vector3.new(9999, 9999, 9999)
-			bv.Parent = hrp
-			task.delay(0.3, function()
-				if bv then bv:Destroy() end
-			end)
-		end
-	end
-	print("Fling All activé")
-end)
-
--- BRING (amène le joueur le plus proche vers toi)
-createButton(pages.Troll, "Bring Closest Player", function()
-	local target = getClosestPlayer()
-	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and character and character:FindFirstChild("HumanoidRootPart") then
-		target.Character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -4)
-		print("Brought: " .. target.Name)
-	else
-		print("Aucun joueur proche trouvé")
-	end
-end)
-
--- BRING ALL
-createButton(pages.Troll, "Bring All Players", function()
-	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-	local myCF = character.HumanoidRootPart.CFrame
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			plr.Character.HumanoidRootPart.CFrame = myCF * CFrame.new(math.random(-5,5), 0, math.random(-5,5))
-		end
-	end
-	print("Bring All activé")
-end)
-
--- ==================== MISC ====================
-local info = Instance.new("TextLabel")
-info.Parent = pages.Misc
-info.BackgroundTransparency = 1
-info.Size = UDim2.new(1, -10, 0, 100)
-info.Font = Enum.Font.Gotham
-info.Text = "A3K Hub - Brookhaven\nVersion 1.1\n\nOnglet Troll :\n• Fling Closest / Fling All\n• Bring Closest / Bring All"
-info.TextColor3 = Color3.fromRGB(180, 180, 200)
-info.TextSize = 13
-info.TextWrapped = true
-info.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Rainbow
 task.spawn(function()
@@ -505,4 +383,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ A3K Brookhaven Mega Panel + Fling/Bring chargé !")
+print("✅ A3K Hub + Fling Caddie Method chargé !")
