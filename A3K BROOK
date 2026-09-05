@@ -1,24 +1,18 @@
 -- ============================================================
---  A3K HUB - Brookhaven Mega Panel
---  Fling Player (Liste + Caddie Method)
+--  A3K HUB - Brookhaven
+--  Fling Player (Liste + Tool Method) - Version corrigée
 -- ============================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 LocalPlayer.CharacterAdded:Connect(function(char) character = char end)
 
--- Variables
-local flying, noclip, infiniteJump, speedEnabled, espEnabled, invisible, antiAFK = false, false, false, false, false, false, false
-local speedValue = 50
-local flyBV, flyBG, noclipConnection, jumpConnection, speedConnection, espFolder
-
--- ==================== GUI PRINCIPAL ====================
+-- ==================== GUI ====================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "A3K_BrookhavenHub"
 ScreenGui.ResetOnSpawn = false
@@ -35,7 +29,6 @@ Main.Size = UDim2.new(0, 560, 0, 400)
 Main.Active = true
 Main.Draggable = true
 Main.ClipsDescendants = true
-
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
 
 local MainStroke = Instance.new("UIStroke", Main)
@@ -70,10 +63,9 @@ CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.TextSize = 14
 CloseBtn.AutoButtonColor = false
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
-
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- Sidebar + Pages
+-- Sidebar
 local Sidebar = Instance.new("Frame", Main)
 Sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 35)
 Sidebar.BorderSizePixel = 0
@@ -119,6 +111,20 @@ end
 for i, name in ipairs(tabs) do createTab(name, i) end
 
 -- Helpers
+local function createButton(parent, text, callback)
+	local btn = Instance.new("TextButton", parent)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
+	btn.Size = UDim2.new(1, -10, 0, 38)
+	btn.Font = Enum.Font.GothamSemibold
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(230, 230, 255)
+	btn.TextSize = 14
+	btn.AutoButtonColor = false
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+	btn.MouseButton1Click:Connect(callback)
+	return btn
+end
+
 local function createToggle(parent, text, default, callback)
 	local frame = Instance.new("Frame", parent)
 	frame.BackgroundColor3 = Color3.fromRGB(28, 28, 45)
@@ -160,21 +166,7 @@ local function createToggle(parent, text, default, callback)
 	end)
 end
 
-local function createButton(parent, text, callback)
-	local btn = Instance.new("TextButton", parent)
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
-	btn.Size = UDim2.new(1, -10, 0, 38)
-	btn.Font = Enum.Font.GothamSemibold
-	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(230, 230, 255)
-	btn.TextSize = 14
-	btn.AutoButtonColor = false
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-	btn.MouseButton1Click:Connect(callback)
-	return btn
-end
-
--- ==================== TROLL - FLING AVEC LISTE ====================
+-- ==================== LISTE DE JOUEURS ====================
 local function openPlayerList(titleText, onSelect)
 	local listGui = Instance.new("ScreenGui")
 	listGui.Name = "PlayerListGui"
@@ -235,12 +227,11 @@ local function openPlayerList(titleText, onSelect)
 			end)
 		end
 	end
-
-	scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+	scroll.CanvasSize = UDim2.new(0, 0, 0, #Players:GetPlayers() * 40)
 end
 
--- ========== FLING CADDIE METHOD ==========
-local function flingWithCart(target)
+-- ==================== FLING CORRIGÉ (Tool Method) ====================
+local function flingPlayer(target)
 	if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
 		warn("Joueur invalide")
 		return
@@ -249,98 +240,73 @@ local function flingWithCart(target)
 
 	local originalCFrame = character.HumanoidRootPart.CFrame
 	local targetHRP = target.Character.HumanoidRootPart
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-	-- 1. Rendre invisible
-	for _, v in pairs(character:GetDescendants()) do
-		if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-			v.Transparency = 1
-		elseif v:IsA("Decal") then
-			v.Transparency = 1
-		end
+	-- Créer un outil temporaire
+	local tool = Instance.new("Tool")
+	tool.Name = "FlingTool"
+	tool.RequiresHandle = true
+	tool.CanBeDropped = true
+
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(1, 1, 1)
+	handle.Transparency = 1
+	handle.CanCollide = false
+	handle.Parent = tool
+
+	tool.Parent = LocalPlayer.Backpack
+	humanoid:EquipTool(tool)
+
+	-- Tourner très vite autour du joueur ciblé
+	local start = tick()
+	while tick() - start < 1.4 do
+		if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then break end
+		local offset = Vector3.new(
+			math.random(-10, 10),
+			math.random(0, 5),
+			math.random(-10, 10)
+		)
+		character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(offset)
+		task.wait(0.025)
 	end
 
-	-- 2. Essayer de trouver / créer un caddie (Shopping Cart)
-	local cart = nil
-	-- Méthode courante : chercher un outil Shopping Cart ou en forcer un
-	for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-		if tool.Name:lower():find("cart") or tool.Name:lower():find("shopping") then
-			cart = tool
-			break
-		end
-	end
+	-- Descendre sous la map
+	character.HumanoidRootPart.CFrame = CFrame.new(0, -450, 0)
+	task.wait(0.4)
 
-	if not cart then
-		-- Création d'un faux caddie simple (fallback)
-		cart = Instance.new("Tool")
-		cart.Name = "Shopping Cart"
-		cart.RequiresHandle = false
-		local handle = Instance.new("Part")
-		handle.Name = "Handle"
-		handle.Size = Vector3.new(2, 2, 4)
-		handle.Transparency = 1
-		handle.Parent = cart
-		cart.Parent = LocalPlayer.Backpack
-	end
+	-- Détruire l'outil (ça lance le joueur)
+	humanoid:UnequipTools()
+	tool:Destroy()
 
-	-- Équiper le caddie
-	character.Humanoid:EquipTool(cart)
+	task.wait(0.3)
 
-	-- 3. Bouger autour du joueur ciblé rapidement
-	local startTime = tick()
-	while tick() - startTime < 1.2 do
-		if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-			local offset = Vector3.new(math.random(-8, 8), math.random(0, 4), math.random(-8, 8))
-			character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(offset)
-		end
-		task.wait(0.03)
-	end
-
-	-- 4. Téléportation sous la map
-	character.HumanoidRootPart.CFrame = CFrame.new(0, -500, 0)
-
-	task.wait(0.35)
-
-	-- 5. Enlever le caddie (il tombe dans le vide → fling le joueur)
-	character.Humanoid:UnequipTools()
-	if cart and cart.Parent then
-		cart:Destroy()
-	end
-
-	task.wait(0.25)
-
-	-- 6. Te retéléporter à ta position d'origine
+	-- Te remettre à ta position d'origine
 	if character and character:FindFirstChild("HumanoidRootPart") then
 		character.HumanoidRootPart.CFrame = originalCFrame
 	end
 
-	-- Remettre visible
-	task.wait(0.1)
-	for _, v in pairs(character:GetDescendants()) do
-		if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-			v.Transparency = 0
-		elseif v:IsA("Decal") then
-			v.Transparency = 0
-		end
-	end
-
-	print("Fling terminé sur : " .. target.Name)
+	print("Fling effectué sur : " .. target.Name)
 end
 
--- Bouton Fling Player (ouvre la liste)
+-- Bouton dans l'onglet Troll
 createButton(pages.Troll, "Fling Player (Liste)", function()
-	openPlayerList("Choisir un joueur à Fling", function(selectedPlayer)
-		flingWithCart(selectedPlayer)
+	openPlayerList("Choisir un joueur à Fling", function(selected)
+		flingPlayer(selected)
 	end)
 end)
 
 createButton(pages.Troll, "Bring Closest", function()
-	local closest, dist = nil, math.huge
+	local closest, shortest = nil, math.huge
 	local myPos = character and character.HumanoidRootPart and character.HumanoidRootPart.Position
 	if not myPos then return end
 	for _, plr in pairs(Players:GetPlayers()) do
 		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
 			local d = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
-			if d < dist then dist = d; closest = plr end
+			if d < shortest then
+				shortest = d
+				closest = plr
+			end
 		end
 	end
 	if closest then
@@ -348,9 +314,8 @@ createButton(pages.Troll, "Bring Closest", function()
 	end
 end)
 
--- ==================== AUTRES ONGLETS (résumé) ====================
+-- ==================== AUTRES FONCTIONS SIMPLES ====================
 createToggle(pages.Player, "Invisible", false, function(v)
-	invisible = v
 	if character then
 		for _, part in pairs(character:GetDescendants()) do
 			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
@@ -362,13 +327,27 @@ createToggle(pages.Player, "Invisible", false, function(v)
 	end
 end)
 
-createToggle(pages.Movement, "Fly", false, function(v) flying = v end) -- (garde ta logique Fly précédente si besoin)
-createToggle(pages.Movement, "Noclip", false, function(v) noclip = v end)
-createToggle(pages.Movement, "Infinite Jump", false, function(v) infiniteJump = v end)
+createToggle(pages.Movement, "Noclip", false, function(v)
+	if v then
+		RunService:BindToRenderStep("Noclip", 1, function()
+			if character then
+				for _, part in pairs(character:GetDescendants()) do
+					if part:IsA("BasePart") then part.CanCollide = false end
+				end
+			end
+		end)
+	else
+		RunService:UnbindFromRenderStep("Noclip")
+	end
+end)
 
-createButton(pages.Teleport, "Spawn", function()
-	if character and character:FindFirstChild("HumanoidRootPart") then
-		character.HumanoidRootPart.CFrame = CFrame.new(0, 5, 0)
+createToggle(pages.Movement, "Infinite Jump", false, function(v)
+	if v then
+		UserInputService.JumpRequest:Connect(function()
+			if character and character:FindFirstChild("Humanoid") then
+				character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end)
 	end
 end)
 
@@ -383,4 +362,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ A3K Hub + Fling Caddie Method chargé !")
+print("✅ A3K Hub - Fling Tool Method corrigé chargé !")
