@@ -1,6 +1,6 @@
 -- ============================================================
 --  A3K HUB - Brookhaven
---  Fond = ton image A3K Hacker Team (cover)
+--  Fond = Image A3K Hacker Team (Cover + Overlay)
 -- ============================================================
 
 local Players = game:GetService("Players")
@@ -19,44 +19,46 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
--- Frame principale
+-- ========== PANEL PRINCIPAL ==========
 local Main = Instance.new("Frame")
 Main.Name = "Main"
 Main.Parent = ScreenGui
-Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- fallback
+Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Main.BorderSizePixel = 0
 Main.Position = UDim2.new(0.5, -280, 0.5, -200)
 Main.Size = UDim2.new(0, 560, 0, 400)
 Main.Active = true
 Main.Draggable = true
-Main.ClipsDescendants = true
+Main.ClipsDescendants = true          -- important pour les coins arrondis
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
 
--- ========== IMAGE DE FOND (ton logo A3K) ==========
+-- ========== 1. IMAGE DE FOND (ton logo) ==========
 local Background = Instance.new("ImageLabel")
 Background.Name = "Background"
 Background.Parent = Main
 Background.BackgroundTransparency = 1
-Background.Size = UDim2.new(1, 0, 1, 0)          -- remplit 100% du panel
+Background.Size = UDim2.new(1, 0, 1, 0)           -- 100% largeur + hauteur
 Background.Position = UDim2.new(0, 0, 0, 0)
+Background.AnchorPoint = Vector2.new(0, 0)
 Background.ZIndex = 0                            -- tout au fond
 Background.ScaleType = Enum.ScaleType.Crop       -- comportement "cover"
-Background.Image = "rbxassetid://0"              -- ← REMPLACE ICI par ton asset ID
--- Exemple : Background.Image = "rbxassetid://1234567890"
+Background.ImageTransparency = 0
+Background.Image = "rbxassetid://0"              -- ← REMPLACE ICI par ton Asset ID
+-- Exemple après upload : Background.Image = "rbxassetid://123456789012345"
 
--- Couche sombre semi-transparente pour que le texte reste lisible
-local DarkOverlay = Instance.new("Frame")
-DarkOverlay.Name = "DarkOverlay"
-DarkOverlay.Parent = Main
-DarkOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-DarkOverlay.BackgroundTransparency = 0.55        -- ajuste si tu veux plus/moins sombre
-DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
-DarkOverlay.ZIndex = 1
-Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 14)
+-- ========== 2. OVERLAY SOMBRE (lisible) ==========
+local Overlay = Instance.new("Frame")
+Overlay.Name = "DarkOverlay"
+Overlay.Parent = Main
+Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Overlay.BackgroundTransparency = 0.55            -- ajuste si besoin (0.4 = plus sombre)
+Overlay.Size = UDim2.new(1, 0, 1, 0)
+Overlay.ZIndex = 1
+Instance.new("UICorner", Overlay).CornerRadius = UDim.new(0, 14)
 
--- ========== HEADER ==========
+-- ========== 3. HEADER ==========
 local Header = Instance.new("Frame", Main)
-Header.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+Header.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 Header.BackgroundTransparency = 0.35
 Header.BorderSizePixel = 0
 Header.Size = UDim2.new(1, 0, 0, 48)
@@ -66,7 +68,7 @@ Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 14)
 local Title = Instance.new("TextLabel", Header)
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 18, 0, 0)
-Title.Size = UDim2.new(0, 300, 1, 0)
+Title.Size = UDim2.new(0, 320, 1, 0)
 Title.Font = Enum.Font.GothamBold
 Title.Text = "A3K HUB  |  Brookhaven"
 Title.TextColor3 = Color3.fromRGB(0, 255, 130)
@@ -87,9 +89,9 @@ CloseBtn.ZIndex = 3
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- ========== SIDEBAR ==========
+-- ========== 4. SIDEBAR ==========
 local Sidebar = Instance.new("Frame", Main)
-Sidebar.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+Sidebar.BackgroundColor3 = Color3.fromRGB(6, 6, 10)
 Sidebar.BackgroundTransparency = 0.4
 Sidebar.BorderSizePixel = 0
 Sidebar.Position = UDim2.new(0, 0, 0, 48)
@@ -101,8 +103,8 @@ local tabButtons, pages = {}, {}
 
 local function createTab(name, index)
 	local btn = Instance.new("TextButton", Sidebar)
-	btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-	btn.BackgroundTransparency = index == 1 and 0.2 or 0.6
+	btn.BackgroundColor3 = Color3.fromRGB(15, 20, 18)
+	btn.BackgroundTransparency = index == 1 and 0.15 or 0.55
 	btn.Position = UDim2.new(0, 8, 0, 10 + (index-1)*36)
 	btn.Size = UDim2.new(1, -16, 0, 32)
 	btn.Font = Enum.Font.GothamSemibold
@@ -129,17 +131,17 @@ local function createTab(name, index)
 	btn.MouseButton1Click:Connect(function()
 		for n, p in pairs(pages) do
 			p.Visible = (n == name)
-			tabButtons[n].BackgroundTransparency = (n == name) and 0.2 or 0.6
+			tabButtons[n].BackgroundTransparency = (n == name) and 0.15 or 0.55
 		end
 	end)
 end
 
 for i, name in ipairs(tabs) do createTab(name, i) end
 
--- Helpers
+-- ========== HELPERS ==========
 local function createButton(parent, text, callback)
 	local btn = Instance.new("TextButton", parent)
-	btn.BackgroundColor3 = Color3.fromRGB(15, 25, 20)
+	btn.BackgroundColor3 = Color3.fromRGB(10, 20, 15)
 	btn.BackgroundTransparency = 0.25
 	btn.Size = UDim2.new(1, -10, 0, 38)
 	btn.Font = Enum.Font.GothamSemibold
@@ -155,7 +157,7 @@ end
 
 local function createToggle(parent, text, default, callback)
 	local frame = Instance.new("Frame", parent)
-	frame.BackgroundColor3 = Color3.fromRGB(12, 18, 15)
+	frame.BackgroundColor3 = Color3.fromRGB(8, 15, 12)
 	frame.BackgroundTransparency = 0.3
 	frame.Size = UDim2.new(1, -10, 0, 42)
 	frame.BorderSizePixel = 0
@@ -174,7 +176,7 @@ local function createToggle(parent, text, default, callback)
 	label.ZIndex = 4
 
 	local toggle = Instance.new("TextButton", frame)
-	toggle.BackgroundColor3 = default and Color3.fromRGB(0, 180, 90) or Color3.fromRGB(40, 50, 45)
+	toggle.BackgroundColor3 = default and Color3.fromRGB(0, 180, 90) or Color3.fromRGB(35, 45, 40)
 	toggle.Position = UDim2.new(1, -55, 0.5, -12)
 	toggle.Size = UDim2.new(0, 45, 0, 24)
 	toggle.Text = ""
@@ -193,19 +195,19 @@ local function createToggle(parent, text, default, callback)
 	local state = default
 	toggle.MouseButton1Click:Connect(function()
 		state = not state
-		toggle.BackgroundColor3 = state and Color3.fromRGB(0, 180, 90) or Color3.fromRGB(40, 50, 45)
+		toggle.BackgroundColor3 = state and Color3.fromRGB(0, 180, 90) or Color3.fromRGB(35, 45, 40)
 		circle:TweenPosition(state and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 3, 0.5, -9), "Out", "Quad", 0.15, true)
 		callback(state)
 	end)
 end
 
--- ==================== LISTE + FLING CADDIE ====================
+-- ========== LISTE + FLING CADDIE ==========
 local function openPlayerList(titleText, onSelect)
 	local listGui = Instance.new("ScreenGui", ScreenGui)
 	listGui.Name = "PlayerListGui"
 
 	local listFrame = Instance.new("Frame", listGui)
-	listFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+	listFrame.BackgroundColor3 = Color3.fromRGB(10, 12, 14)
 	listFrame.Size = UDim2.new(0, 280, 0, 360)
 	listFrame.Position = UDim2.new(0.5, -140, 0.5, -180)
 	listFrame.Active = true
@@ -244,7 +246,7 @@ local function openPlayerList(titleText, onSelect)
 	for _, plr in pairs(Players:GetPlayers()) do
 		if plr ~= LocalPlayer then
 			local btn = Instance.new("TextButton", scroll)
-			btn.BackgroundColor3 = Color3.fromRGB(25, 35, 30)
+			btn.BackgroundColor3 = Color3.fromRGB(20, 30, 25)
 			btn.Size = UDim2.new(1, 0, 0, 34)
 			btn.Font = Enum.Font.Gotham
 			btn.Text = plr.Name
@@ -336,7 +338,7 @@ local function flingWithCart(target)
 	end
 end
 
--- Boutons Troll
+-- Boutons
 createButton(pages.Troll, "Fling Player (Caddie)", function()
 	openPlayerList("Choisir un joueur à Fling", function(selected)
 		flingWithCart(selected)
@@ -358,7 +360,6 @@ createButton(pages.Troll, "Bring Closest", function()
 	end
 end)
 
--- Options de base
 createToggle(pages.Player, "Invisible", false, function(v)
 	if character then
 		for _, part in pairs(character:GetDescendants()) do
@@ -385,5 +386,5 @@ createToggle(pages.Movement, "Noclip", false, function(v)
 	end
 end)
 
-print("✅ A3K Hub avec ton image de fond chargé !")
-print("→ Remplace rbxassetid://0 par l'ID de ton image uploadée sur Roblox")
+print("✅ A3K Hub avec fond image chargé !")
+print("→ Remplace rbxassetid://0 par l'ID de ton image")
